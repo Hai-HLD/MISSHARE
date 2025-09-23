@@ -39,6 +39,7 @@ async function initializeWebsite() {
         
         // Initialize page-specific functionality based on current page
         const currentPage = getCurrentPage();
+        console.log('Current page detected:', currentPage, 'from path:', window.location.pathname);
         switch(currentPage) {
             case 'note':
                 initializeNotePage();
@@ -1150,6 +1151,7 @@ function formatDate(dateString) {
 
 // Initialize profile page functionality
 function initializeProfilePage() {
+    console.log('initializeProfilePage called');
     // Hide profile content initially
     hideProfileContent();
     setupProfileFunctionality();
@@ -1177,6 +1179,7 @@ function showProfileContent() {
 
 // Setup profile functionality
 function setupProfileFunctionality() {
+    console.log('setupProfileFunctionality called');
     loadUserProfile();
     setupProfileTabs();
     setupEditProfileModal();
