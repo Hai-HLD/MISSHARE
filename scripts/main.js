@@ -511,12 +511,12 @@ function saveUserData(userData) {
         // Continue to next method
     }
     
-    // Try localStorage as fallback
+    // Try sessionStorage as fallback
     try {
         if (userData) {
-            localStorage.setItem('misShareUser', JSON.stringify(userData));
+            sessionStorage.setItem('misShareUser', JSON.stringify(userData));
         } else {
-            localStorage.removeItem('misShareUser');
+            sessionStorage.removeItem('misShareUser');
         }
     } catch (error) {
         // Continue to next method
@@ -543,9 +543,9 @@ function loadUserData() {
         // Continue to next method
     }
     
-    // Try localStorage as fallback
+    // Try sessionStorage as fallback
     try {
-        const storedUser = localStorage.getItem('misShareUser');
+        const storedUser = sessionStorage.getItem('misShareUser');
         if (storedUser) {
             return JSON.parse(storedUser);
         }

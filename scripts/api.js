@@ -11,25 +11,20 @@ class APIService {
         this.token = this.loadToken();
         this.isInitialized = false;
         
-        // Initialize asynchronously
-        this.initialize();
+        // Initialize synchronously for immediate use
+        this.initializeSync();
     }
     
   initializeTokenStorage() {
-        // Try different storage methods in order of preference
+        // Use session storage for all token storage
         this.storageMethods = [];
         
-        // 1. Try sessionStorage first (persists across page reloads but not browser close)
+        // 1. Use sessionStorage (persists across page reloads but not browser close)
         if (this.isStorageAvailable('sessionStorage')) {
             this.storageMethods.push('sessionStorage');
         }
         
-        // 2. Try localStorage as fallback
-        if (this.isStorageAvailable('localStorage')) {
-            this.storageMethods.push('localStorage');
-        }
-        
-        // 3. Use in-memory storage as last resort
+        // 2. Use in-memory storage as fallback only
         this.storageMethods.push('memory');
         
         // Initialize in-memory storage
@@ -51,6 +46,8 @@ class APIService {
     }
     
     loadToken() {
+        console.log('loadToken() called, storage methods:', this.storageMethods);
+        
         // Try each storage method in order
         for (const method of this.storageMethods) {
             try {
@@ -59,24 +56,26 @@ class APIService {
                 switch (method) {
                     case 'sessionStorage':
                         token = sessionStorage.getItem('misShareToken');
-                        break;
-                    case 'localStorage':
-                        token = localStorage.getItem('misShareToken');
+                        console.log('sessionStorage token:', !!token);
                         break;
                     case 'memory':
                         token = window.misShareTokenStorage.token;
+                        console.log('memory token:', !!token);
                         break;
                 }
                 
                 if (token) {
+                    console.log(`Token found in ${method}`);
                     return token;
                 }
             } catch (error) {
+                console.warn(`Failed to load token from ${method}:`, error);
                 // Continue to next storage method
                 continue;
             }
         }
         
+        console.log('No token found in any storage method');
         return null;
     }
     
@@ -90,13 +89,6 @@ class APIService {
                             sessionStorage.setItem('misShareToken', token);
                         } else {
                             sessionStorage.removeItem('misShareToken');
-                        }
-                        break;
-                    case 'localStorage':
-                        if (token) {
-                            localStorage.setItem('misShareToken', token);
-                        } else {
-                            localStorage.removeItem('misShareToken');
                         }
                         break;
                     case 'memory':
@@ -114,13 +106,13 @@ class APIService {
         }
     }
     
-    checkLocalStorageAvailability() {
+    checkSessionStorageAvailability() {
         try {
             const testKey = 'misShareTest';
-            localStorage.setItem(testKey, 'test');
-            localStorage.removeItem(testKey);
+            sessionStorage.setItem(testKey, 'test');
+            sessionStorage.removeItem(testKey);
         } catch (error) {
-            console.error('localStorage is not available:', error);
+            console.error('sessionStorage is not available:', error);
         }
     }
 
@@ -129,21 +121,45 @@ class APIService {
         return 'https://misshare-api.hlhoang.workers.dev/api';
     }
 
+    initializeSync() {
+        try {
+            console.log('APIService initializeSync() called');
+            console.log('APIService current token:', !!this.token);
+            
+            // For synchronous initialization, just mark as initialized
+            // Token validation will happen on first API call
+            console.log('APIService synchronous initialization complete, setting isInitialized = true');
+            this.isInitialized = true;
+        } catch (error) {
+            console.warn('APIService synchronous initialization failed:', error);
+            this.isInitialized = true;
+        }
+    }
+
     async initialize() {
         try {
+            console.log('APIService initialize() called');
+            console.log('APIService current token:', !!this.token);
+            
             // If no token found, try to load it again (in case of timing issues)
             if (!this.token) {
+                console.log('No token found, trying to load from storage');
                 this.token = this.loadToken();
+                console.log('Token loaded from storage:', !!this.token);
             }
             
             // Validate token if present
             if (this.token) {
+                console.log('Validating token...');
                 const isValid = await this.validateToken();
+                console.log('Token validation result:', isValid);
                 if (!isValid) {
+                    console.log('Token invalid, clearing it');
                     this.clearToken();
                 }
             }
             
+            console.log('APIService initialization complete, setting isInitialized = true');
             this.isInitialized = true;
         } catch (error) {
             console.warn('APIService initialization failed:', error);
@@ -320,7 +336,7 @@ class APIService {
             console.log('Setting token from login response');
             this.setToken(response.token);
             console.log('Token set, current token value:', this.token);
-            console.log('localStorage token after set:', localStorage.getItem('misShareToken'));
+            console.log('sessionStorage token after set:', sessionStorage.getItem('misShareToken'));
         } else {
             console.log('No token in login response');
         }
@@ -344,7 +360,7 @@ class APIService {
             console.log('Setting token from registration response');
             this.setToken(response.token);
             console.log('Token set, current token value:', this.token);
-            console.log('localStorage token after set:', localStorage.getItem('misShareToken'));
+            console.log('sessionStorage token after set:', sessionStorage.getItem('misShareToken'));
         } else {
             console.log('No token in registration response');
         }
