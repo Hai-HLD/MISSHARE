@@ -39,7 +39,6 @@ async function initializeWebsite() {
         
         // Initialize page-specific functionality based on current page
         const currentPage = getCurrentPage();
-        console.log('Current page detected:', currentPage, 'from path:', window.location.pathname);
         switch(currentPage) {
             case 'note':
                 initializeNotePage();
@@ -537,25 +536,20 @@ function loadUserData() {
     // Try sessionStorage
     try {
         const storedUser = sessionStorage.getItem('misShareUser');
-        console.log('loadUserData - sessionStorage user:', !!storedUser);
         if (storedUser) {
             return JSON.parse(storedUser);
         }
     } catch (error) {
-        console.warn('loadUserData - sessionStorage error:', error);
         // Continue to next method
     }
     
     // Use in-memory storage as last resort
-    const memoryUser = window.misShareUserStorage.user || null;
-    console.log('loadUserData - memory user:', !!memoryUser);
-    return memoryUser;
+    return window.misShareUserStorage.user || null;
 }
 
 // Get current user info
 async function getCurrentUser() {
     const loggedIn = isLoggedIn();
-    console.log('getCurrentUser - loggedIn:', loggedIn);
     
     if (!loggedIn) {
         return null;
@@ -1097,14 +1091,11 @@ async function verifyAuthenticationStatus() {
         const storedUser = loadUserData();
         
         if (storedToken && storedUser) {
-            console.log('Found stored authentication, validating...');
             try {
                 // Validate token with server
                 const isValid = await window.apiService.validateToken();
                 if (isValid) {
-                    console.log('Authentication verified successfully');
                 } else {
-                    console.log('Token validation failed, clearing authentication');
                     window.apiService.clearToken();
                     saveUserData(null);
                 }
@@ -1151,15 +1142,54 @@ function formatDate(dateString) {
 
 // Initialize profile page functionality
 function initializeProfilePage() {
-    console.log('initializeProfilePage called');
-    // Hide profile content initially
-    hideProfileContent();
+    // Hide all profile content initially
+    hideAllProfileContent();
+    // Show loading spinner
+    showProfileLoading();
     setupProfileFunctionality();
 }
 
 // ===== PROFILE FUNCTIONALITY =====
 
-// Hide profile content initially
+// Hide all profile content initially (including header)
+function hideAllProfileContent() {
+    const profileHeader = document.querySelector('.container .row:first-child');
+    const profileTabs = document.getElementById('profileTabs');
+    const profileTabContent = document.getElementById('profileTabContent');
+    
+    if (profileHeader) profileHeader.style.display = 'none';
+    if (profileTabs) profileTabs.style.display = 'none';
+    if (profileTabContent) profileTabContent.style.display = 'none';
+}
+
+// Show loading state for profile page
+function showProfileLoading() {
+    const container = document.querySelector('.container');
+    if (container) {
+        // Add loading spinner to the container
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'profileLoadingSpinner';
+        loadingDiv.className = 'text-center py-5';
+        loadingDiv.innerHTML = `
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4 class="text-muted">Loading Profile...</h4>
+            <p class="text-muted">Please wait while we load your profile information.</p>
+        `;
+        container.appendChild(loadingDiv);
+    }
+}
+
+// Hide loading state for profile page
+function hideProfileLoading() {
+    const loadingSpinner = document.getElementById('profileLoadingSpinner');
+    if (loadingSpinner) {
+        loadingSpinner.remove();
+    }
+}
+
+// Hide profile content initially (tabs only)
 function hideProfileContent() {
     const profileTabs = document.getElementById('profileTabs');
     const profileTabContent = document.getElementById('profileTabContent');
@@ -1170,16 +1200,20 @@ function hideProfileContent() {
 
 // Show profile content after authentication
 function showProfileContent() {
+    // Hide loading spinner first
+    hideProfileLoading();
+    
+    const profileHeader = document.querySelector('.container .row:first-child');
     const profileTabs = document.getElementById('profileTabs');
     const profileTabContent = document.getElementById('profileTabContent');
     
+    if (profileHeader) profileHeader.style.display = 'block';
     if (profileTabs) profileTabs.style.display = 'block';
     if (profileTabContent) profileTabContent.style.display = 'block';
 }
 
 // Setup profile functionality
 function setupProfileFunctionality() {
-    console.log('setupProfileFunctionality called');
     loadUserProfile();
     setupProfileTabs();
     setupEditProfileModal();
@@ -1195,15 +1229,8 @@ async function loadUserProfile() {
         }
         
         if (!window.apiService.isInitialized) {
-            console.warn('API service not initialized, attempting synchronous initialization');
             window.apiService.initializeSync();
         }
-        
-        console.log('Profile loading - API service state:', {
-            exists: !!window.apiService,
-            initialized: window.apiService?.isInitialized,
-            hasToken: !!window.apiService?.token
-        });
         
         const user = await getCurrentUser();
         
@@ -1243,7 +1270,6 @@ async function loadUserProfile() {
 // Load profile data for a specific user
 async function loadProfileData(cwid, isOwnProfile) {
     try {
-        console.log('Loading profile data for CWID:', cwid, 'isOwnProfile:', isOwnProfile);
         
         // Get the profile owner's data
         const profileOwner = await apiService.getUser(cwid);
@@ -1264,6 +1290,9 @@ async function loadProfileData(cwid, isOwnProfile) {
         
         // Hide the bookmarks tab since we removed bookmark functionality
         hideBookmarksTab();
+        
+        // Show all content only after all API calls are complete
+        showProfileContent();
         
     } catch (error) {
         console.error('Failed to load profile data:', error);
@@ -1328,8 +1357,7 @@ function displayUserProfile(user) {
         userBio.textContent = 'Welcome to my profile!'; // Default bio since bio property was removed
     }
     
-    // Show profile content after user data is loaded
-    showProfileContent();
+    // Don't show content here - wait for all API calls to complete
 }
 
 // Load user's notes
@@ -1600,7 +1628,6 @@ async function updateMainPageContent() {
     const heroIcon = document.getElementById('heroIcon');
     const dynamicContent = document.getElementById('dynamicContent');
     
-    console.log('Updating main page content, userLoggedIn:', userLoggedIn);
     
     if (userLoggedIn) {
         // User is logged in - show personalized content
@@ -1773,23 +1800,40 @@ async function handleSearchSubmit(e) {
     if (author) searchParams.author = author;
     
     try {
-        console.log('Performing search with params:', searchParams);
-        console.log('API service available:', !!window.apiService);
-        console.log('API service token:', !!window.apiService?.token);
+        // Show loading state
+        showSearchLoading();
         
         const notes = await apiService.getNotes(searchParams);
-        console.log('Search results:', notes);
         
         displaySearchResults(notes || []);
     } catch (error) {
         console.error('Search failed:', error);
-        console.error('Search error details:', {
-            message: error.message,
-            stack: error.stack,
-            searchParams: searchParams
-        });
         showNotification('Search failed. Please try again.', 'danger');
         displaySearchResults([]);
+    }
+}
+
+// Show loading state for search
+function showSearchLoading() {
+    const notesGrid = document.getElementById('notesGrid');
+    const resultCount = document.getElementById('resultCount');
+    
+    if (notesGrid) {
+        notesGrid.innerHTML = `
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="text-muted">Searching...</h4>
+                    <p class="text-muted">Please wait while we find your notes.</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (resultCount) {
+        resultCount.textContent = 'Searching...';
     }
 }
 

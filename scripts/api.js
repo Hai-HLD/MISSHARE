@@ -46,8 +46,6 @@ class APIService {
     }
     
     loadToken() {
-        console.log('loadToken() called, storage methods:', this.storageMethods);
-        
         // Try each storage method in order
         for (const method of this.storageMethods) {
             try {
@@ -56,26 +54,21 @@ class APIService {
                 switch (method) {
                     case 'sessionStorage':
                         token = sessionStorage.getItem('misShareToken');
-                        console.log('sessionStorage token:', !!token);
                         break;
                     case 'memory':
                         token = window.misShareTokenStorage.token;
-                        console.log('memory token:', !!token);
                         break;
                 }
                 
                 if (token) {
-                    console.log(`Token found in ${method}`);
                     return token;
                 }
             } catch (error) {
-                console.warn(`Failed to load token from ${method}:`, error);
                 // Continue to next storage method
                 continue;
             }
         }
         
-        console.log('No token found in any storage method');
         return null;
     }
     
@@ -123,46 +116,31 @@ class APIService {
 
     initializeSync() {
         try {
-            console.log('APIService initializeSync() called');
-            console.log('APIService current token:', !!this.token);
-            
             // For synchronous initialization, just mark as initialized
             // Token validation will happen on first API call
-            console.log('APIService synchronous initialization complete, setting isInitialized = true');
             this.isInitialized = true;
         } catch (error) {
-            console.warn('APIService synchronous initialization failed:', error);
             this.isInitialized = true;
         }
     }
 
     async initialize() {
         try {
-            console.log('APIService initialize() called');
-            console.log('APIService current token:', !!this.token);
-            
             // If no token found, try to load it again (in case of timing issues)
             if (!this.token) {
-                console.log('No token found, trying to load from storage');
                 this.token = this.loadToken();
-                console.log('Token loaded from storage:', !!this.token);
             }
             
             // Validate token if present
             if (this.token) {
-                console.log('Validating token...');
                 const isValid = await this.validateToken();
-                console.log('Token validation result:', isValid);
                 if (!isValid) {
-                    console.log('Token invalid, clearing it');
                     this.clearToken();
                 }
             }
             
-            console.log('APIService initialization complete, setting isInitialized = true');
             this.isInitialized = true;
         } catch (error) {
-            console.warn('APIService initialization failed:', error);
             // Don't clear token on initialization errors - let it be validated on first API call
             this.isInitialized = true;
         }
@@ -200,7 +178,6 @@ class APIService {
     async waitForInitialization() {
         // Since we now use synchronous initialization, this should be immediate
         if (!this.isInitialized) {
-            console.warn('API Service not initialized, attempting synchronous initialization');
             this.initializeSync();
         }
         
@@ -248,7 +225,6 @@ class APIService {
     async request(endpoint, options = {}) {
         // Ensure initialization is complete
         if (!this.isInitialized) {
-            console.warn('API Service not initialized, attempting synchronous initialization');
             this.initializeSync();
         }
         
@@ -258,12 +234,8 @@ class APIService {
             ...options
         };
 
-        console.log('Making API request to:', url);
-        console.log('Request config:', config);
-
         try {
             const response = await fetch(url, config);
-            console.log('Response status:', response.status);
             
             // Handle authentication errors
             if (response.status === 401) {
@@ -272,23 +244,18 @@ class APIService {
             }
             
             if (!response.ok) {
-                console.error('API response not OK:', response.status, response.statusText);
-                
                 // Try to get error message from response
                 let errorMessage = `HTTP error! status: ${response.status}`;
                 try {
                     const errorData = await response.json();
-                    console.error('API error response:', errorData);
                     errorMessage = errorData.message || errorData.error || errorMessage;
                 } catch (jsonError) {
-                    console.error('Failed to parse error response as JSON:', jsonError);
                     // Try to get text response
                     try {
                         const errorText = await response.text();
-                        console.error('API error response (text):', errorText);
                         errorMessage = errorText || errorMessage;
                     } catch (textError) {
-                        console.error('Failed to get error response as text:', textError);
+                        // Use default error message
                     }
                 }
                 
@@ -299,13 +266,11 @@ class APIService {
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
                 const data = await response.json();
-                console.log('API response data:', data);
                 return data;
             }
             
             return null;
         } catch (error) {
-            console.error('API request failed:', error);
             
             // Handle network errors more specifically
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -329,17 +294,8 @@ class APIService {
             body: JSON.stringify({ email, password })
         });
 
-        console.log('Login API response:', response);
-        console.log('Response has token:', response && response.token ? 'Yes' : 'No');
-        console.log('Token value:', response && response.token ? response.token : 'None');
-
         if (response && response.token) {
-            console.log('Setting token from login response');
             this.setToken(response.token);
-            console.log('Token set, current token value:', this.token);
-            console.log('sessionStorage token after set:', sessionStorage.getItem('misShareToken'));
-        } else {
-            console.log('No token in login response');
         }
 
         return response;
@@ -353,17 +309,8 @@ class APIService {
             body: JSON.stringify(userData)
         });
 
-        console.log('Registration response:', response);
-        console.log('Response has token:', response && response.token ? 'Yes' : 'No');
-        console.log('Token value:', response && response.token ? response.token : 'None');
-
         if (response && response.token) {
-            console.log('Setting token from registration response');
             this.setToken(response.token);
-            console.log('Token set, current token value:', this.token);
-            console.log('sessionStorage token after set:', sessionStorage.getItem('misShareToken'));
-        } else {
-            console.log('No token in registration response');
         }
 
         return response;
@@ -391,7 +338,6 @@ class APIService {
     async createNote(noteData) {
         console.log('Creating note with data:', noteData);
         console.log('JSON stringified data:', JSON.stringify(noteData));
-        console.log('Current token:', this.token);
         
         const result = await this.request('/notes', {
             method: 'POST',
@@ -445,32 +391,20 @@ class APIService {
 
 // Create global API service instance - only create once
 async function initializeAPIService() {
-    console.log('API Service creation check - window.apiService exists:', !!window.apiService);
-    console.log('API Service creation - Current location:', window.location.href);
-    console.log('API Service creation - Current origin:', window.location.origin);
-    console.log('API Service creation - Current pathname:', window.location.pathname);
-    console.log('API Service creation - All session storage keys:', Object.keys(sessionStorage));
-    console.log('API Service creation - All session storage values:', Object.fromEntries(Object.entries(sessionStorage)));
 
     if (!window.apiService) {
-        console.log('Creating new API service instance');
         window.apiService = new APIService();
     } else {
-        console.log('API service already exists, refreshing token from storage');
         // If API service already exists, just ensure it has the latest token from storage
         const storedToken = window.apiService.loadToken();
-        console.log('Stored token found:', !!storedToken);
         if (storedToken && storedToken !== window.apiService.token) {
-            console.log('Updating API service token from storage');
             window.apiService.token = storedToken;
         }
         // Ensure the API service is properly initialized
         if (!window.apiService.isInitialized) {
-            console.log('Re-initializing existing API service');
             await window.apiService.initialize();
         }
     }
-    console.log('Final API service state - token:', !!window.apiService?.token, 'initialized:', window.apiService?.isInitialized);
 }
 
 // Initialize API service
