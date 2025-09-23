@@ -1,0 +1,19 @@
+{
+  "Version": 1,
+  "Hash": "AaRVetMjm0eI475ct1krfan70T+AsC7aOb5DzNjO6vU=",
+  "Source": "MISShareAPI",
+  "BasePath": "_content/MISShareAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "MISShareAPI\\wwwroot",
+      "Source": "MISShareAPI",
+      "ContentRoot": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\wwwroot\\",
+      "BasePath": "_content/MISShareAPI",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": []
+}
