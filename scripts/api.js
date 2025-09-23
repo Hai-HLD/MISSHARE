@@ -427,30 +427,35 @@ class APIService {
 }
 
 // Create global API service instance - only create once
-console.log('API Service creation check - window.apiService exists:', !!window.apiService);
-console.log('API Service creation - Current location:', window.location.href);
-console.log('API Service creation - Current origin:', window.location.origin);
-console.log('API Service creation - Current pathname:', window.location.pathname);
-console.log('API Service creation - All session storage keys:', Object.keys(sessionStorage));
-console.log('API Service creation - All session storage values:', Object.fromEntries(Object.entries(sessionStorage)));
+async function initializeAPIService() {
+    console.log('API Service creation check - window.apiService exists:', !!window.apiService);
+    console.log('API Service creation - Current location:', window.location.href);
+    console.log('API Service creation - Current origin:', window.location.origin);
+    console.log('API Service creation - Current pathname:', window.location.pathname);
+    console.log('API Service creation - All session storage keys:', Object.keys(sessionStorage));
+    console.log('API Service creation - All session storage values:', Object.fromEntries(Object.entries(sessionStorage)));
 
-if (!window.apiService) {
-    console.log('Creating new API service instance');
-    window.apiService = new APIService();
-} else {
-    console.log('API service already exists, refreshing token from storage');
-    // If API service already exists, just ensure it has the latest token from storage
-    const storedToken = window.apiService.loadToken();
-    console.log('Stored token found:', !!storedToken);
-    if (storedToken && storedToken !== window.apiService.token) {
-        console.log('Updating API service token from storage');
-        window.apiService.token = storedToken;
+    if (!window.apiService) {
+        console.log('Creating new API service instance');
+        window.apiService = new APIService();
+    } else {
+        console.log('API service already exists, refreshing token from storage');
+        // If API service already exists, just ensure it has the latest token from storage
+        const storedToken = window.apiService.loadToken();
+        console.log('Stored token found:', !!storedToken);
+        if (storedToken && storedToken !== window.apiService.token) {
+            console.log('Updating API service token from storage');
+            window.apiService.token = storedToken;
+        }
+        // Ensure the API service is properly initialized
+        if (!window.apiService.isInitialized) {
+            console.log('Re-initializing existing API service');
+            await window.apiService.initialize();
+        }
     }
-    // Also ensure the API service is marked as initialized
-    if (!window.apiService.isInitialized) {
-        console.log('Marking API service as initialized');
-        window.apiService.isInitialized = true;
-    }
+    console.log('Final API service state - token:', !!window.apiService?.token, 'initialized:', window.apiService?.isInitialized);
 }
-console.log('Final API service state - token:', !!window.apiService?.token, 'initialized:', window.apiService?.isInitialized);
+
+// Initialize API service
+initializeAPIService();
 
