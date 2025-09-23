@@ -1153,13 +1153,10 @@ function initializeProfilePage() {
 
 // Hide all profile content initially (including header)
 function hideAllProfileContent() {
-    const profileHeader = document.querySelector('.container .row:first-child');
-    const profileTabs = document.getElementById('profileTabs');
-    const profileTabContent = document.getElementById('profileTabContent');
-    
-    if (profileHeader) profileHeader.style.display = 'none';
-    if (profileTabs) profileTabs.style.display = 'none';
-    if (profileTabContent) profileTabContent.style.display = 'none';
+    const profileContent = document.querySelector('.profile-content');
+    if (profileContent) {
+        profileContent.classList.remove('ready');
+    }
 }
 
 // Show loading state for profile page
@@ -1203,13 +1200,11 @@ function showProfileContent() {
     // Hide loading spinner first
     hideProfileLoading();
     
-    const profileHeader = document.querySelector('.container .row:first-child');
-    const profileTabs = document.getElementById('profileTabs');
-    const profileTabContent = document.getElementById('profileTabContent');
-    
-    if (profileHeader) profileHeader.style.display = 'block';
-    if (profileTabs) profileTabs.style.display = 'block';
-    if (profileTabContent) profileTabContent.style.display = 'block';
+    // Show profile content
+    const profileContent = document.querySelector('.profile-content');
+    if (profileContent) {
+        profileContent.classList.add('ready');
+    }
 }
 
 // Setup profile functionality
@@ -1815,8 +1810,14 @@ async function handleSearchSubmit(e) {
 
 // Show loading state for search
 function showSearchLoading() {
+    const searchResults = document.querySelector('.search-results');
     const notesGrid = document.getElementById('notesGrid');
     const resultCount = document.getElementById('resultCount');
+    
+    // Show search results section
+    if (searchResults) {
+        searchResults.classList.add('ready');
+    }
     
     if (notesGrid) {
         notesGrid.innerHTML = `

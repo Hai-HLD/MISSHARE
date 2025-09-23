@@ -12,6 +12,26 @@ body.page-ready {
     background-color: transparent;
 }
 
+/* Hide profile content initially to prevent flash */
+.profile-content {
+    display: none;
+}
+
+/* Show profile content when ready */
+.profile-content.ready {
+    display: block;
+}
+
+/* Hide search results initially to prevent flash */
+.search-results {
+    display: none;
+}
+
+/* Show search results when ready */
+.search-results.ready {
+    display: block;
+}
+
 /* Root Variables */
 :root {
   --primary-color: #8b1538;
