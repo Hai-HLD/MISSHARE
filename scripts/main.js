@@ -19,16 +19,13 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeWebsite() {
     // Prevent multiple initializations
     if (window.websiteInitialized) {
-        console.log('Website already initialized, skipping...');
         return;
     }
     
     try {
-        console.log('Initializing website...');
         window.websiteInitialized = true;
         
         // First, verify authentication status before any page rendering
-        console.log('Verifying authentication status...');
         await verifyAuthenticationStatus();
         
         // Initialize core functionality
@@ -61,7 +58,6 @@ async function initializeWebsite() {
         }
         
         // Final navigation update to ensure all pages have correct state
-        console.log('Final navigation update...');
         await updateNavigation();
         
     } catch (error) {
@@ -74,8 +70,6 @@ async function initializeWebsite() {
 // Determine current page based on URL
 function getCurrentPage() {
     const path = window.location.pathname;
-    console.log('getCurrentPage - path:', path);
-    
     if (path.includes('note.html')) return 'note';
     if (path.includes('profile.html')) return 'profile';
     if (path.includes('search.html')) return 'search';
@@ -484,16 +478,8 @@ function setupAuthentication() {
 // Check if user is logged in
 function isLoggedIn() {
     const apiService = window.apiService;
-    console.log('isLoggedIn check on page:', window.location.pathname);
-    console.log('isLoggedIn check:', {
-        apiService: !!apiService,
-        isInitialized: apiService?.isInitialized,
-        hasToken: !!(apiService?.token),
-        token: apiService?.token ? 'exists' : 'null'
-    });
     
     if (!apiService) {
-        console.log('No API service available');
         return false;
     }
     
@@ -501,9 +487,7 @@ function isLoggedIn() {
     const hasToken = apiService.token !== null && apiService.token !== undefined;
     const isInitialized = apiService.isInitialized;
     
-    const result = hasToken && isInitialized;
-    console.log('isLoggedIn result:', result, 'hasToken:', hasToken, 'isInitialized:', isInitialized);
-    return result;
+    return hasToken && isInitialized;
 }
 
 // User data storage system
@@ -644,59 +628,32 @@ async function logoutUser() {
 // Initialize authentication state
 async function initializeAuthState() {
     try {
-        console.log('Initializing authentication state...');
-        console.log('Current page:', window.location.pathname);
-        
         // Check session storage directly first
         const sessionToken = sessionStorage.getItem('misShareToken');
         const sessionUser = sessionStorage.getItem('misShareUser');
-        console.log('Session storage check - Token:', !!sessionToken, 'User:', !!sessionUser);
-        console.log('Session token value:', sessionToken ? 'exists' : 'null');
-        console.log('Session user value:', sessionUser ? 'exists' : 'null');
-        console.log('Current location:', window.location.href);
-        console.log('Current origin:', window.location.origin);
-        console.log('Current pathname:', window.location.pathname);
-        
-        // Check all session storage keys
-        console.log('All session storage keys:', Object.keys(sessionStorage));
-        console.log('All session storage values:', Object.fromEntries(Object.entries(sessionStorage)));
         
         // Wait for API service to be available and initialized
         if (window.apiService) {
-            console.log('API service exists, waiting for initialization...');
             await window.apiService.waitForInitialization();
-            console.log('API service initialized');
-            console.log('API service token before refresh:', !!window.apiService.token);
             
             // Try to refresh token from storage
-            const refreshResult = window.apiService.refreshTokenFromStorage();
-            console.log('Token refresh result:', refreshResult);
-            console.log('Token after refresh:', !!window.apiService.token);
-            console.log('Token value after refresh:', window.apiService.token ? 'exists' : 'null');
+            window.apiService.refreshTokenFromStorage();
             
             // Check if we have a stored token and user data
             const storedToken = window.apiService.token;
             const storedUser = loadUserData();
             
-            console.log('Final stored token:', !!storedToken);
-            console.log('Final stored user:', !!storedUser);
-            
             if (storedToken && storedUser) {
                 // Token is already loaded and validated by API service
-                console.log('User is logged in, updating user info');
                 await updateUserInfo();
             } else {
                 // Clear any invalid data
-                console.log('No valid token/user data, clearing');
                 window.apiService.clearToken();
                 saveUserData(null);
             }
             
             // Update navigation after authentication state is determined
-            console.log('About to update navigation, final token:', !!window.apiService?.token);
             await updateNavigation();
-        } else {
-            console.log('No API service available!');
         }
     } catch (error) {
         console.error('Failed to initialize auth state:', error);
@@ -713,19 +670,11 @@ async function checkAuthenticationStatus() {
 // Update navigation based on login status
 async function updateNavigation() {
     const userLoggedIn = isLoggedIn();
-    console.log('updateNavigation called, userLoggedIn:', userLoggedIn);
     
     const profileNavItem = document.getElementById('profileNavItem');
     const loginNavItem = document.getElementById('loginNavItem');
     const logoutNavItem = document.getElementById('logoutNavItem');
     const getStartedBtn = document.getElementById('getStartedBtn');
-    
-    console.log('Navigation elements found:', {
-        profileNavItem: !!profileNavItem,
-        loginNavItem: !!loginNavItem,
-        logoutNavItem: !!logoutNavItem,
-        getStartedBtn: !!getStartedBtn
-    });
 
     if (profileNavItem) {
         profileNavItem.style.display = userLoggedIn ? 'block' : 'none';
@@ -749,18 +698,13 @@ async function updateNavigation() {
         logoutNavItem.style.display = userLoggedIn ? 'block' : 'none';
     }
     if (getStartedBtn) {
-        console.log('Updating getStartedBtn, userLoggedIn:', userLoggedIn);
         if (userLoggedIn) {
             getStartedBtn.innerHTML = '<i class="bi bi-upload me-2"></i>Upload Notes';
             getStartedBtn.href = 'upload.html';
-            console.log('Set getStartedBtn to Upload Note');
         } else {
             getStartedBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Get Started';
             getStartedBtn.href = 'login.html';
-            console.log('Set getStartedBtn to Get Started');
         }
-    } else {
-        console.log('getStartedBtn not found');
     }
     
     // Update main page content if we're on the main page
@@ -1237,8 +1181,6 @@ function setupProfileFunctionality() {
 // Load user profile data
 async function loadUserProfile() {
     try {
-        console.log('loadUserProfile called');
-        
         // Wait for API service to be properly initialized
         if (window.apiService) {
             await window.apiService.waitForInitialization();
@@ -1247,7 +1189,6 @@ async function loadUserProfile() {
         }
         
         const user = await getCurrentUser();
-        console.log('getCurrentUser returned:', user);
         
         // Get the profile owner from URL parameter or default to current user
         const urlParams = new URLSearchParams(window.location.search);
@@ -1255,11 +1196,9 @@ async function loadUserProfile() {
         
         if (profileOwnerCwid) {
             // Viewing someone else's profile
-            console.log('Viewing profile for CWID:', profileOwnerCwid);
             await loadProfileData(profileOwnerCwid, false); // false = not own profile
         } else if (user) {
             // Viewing own profile - redirect to URL with CWID
-            console.log('Viewing own profile');
             const currentUrl = new URL(window.location);
             if (!currentUrl.searchParams.has('cwid')) {
                 currentUrl.searchParams.set('cwid', user.cwid);
@@ -1268,7 +1207,6 @@ async function loadUserProfile() {
             await loadProfileData(user.cwid, true); // true = own profile
         } else {
             // No user logged in and no profile specified
-            console.log('No user logged in and no profile specified');
             showNotification('Please specify a profile to view or log in to view your own profile.', 'info');
             showProfileContent(); // Show content even if no user to display error state
         }

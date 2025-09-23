@@ -243,8 +243,6 @@ class APIService {
 
         console.log('Making API request to:', url);
         console.log('Request config:', config);
-        console.log('API Base URL:', this.baseURL);
-        console.log('Current location:', window.location.href);
 
         try {
             const response = await fetch(url, config);
