@@ -198,12 +198,10 @@ class APIService {
 
     // Wait for initialization to complete
     async waitForInitialization() {
-        let attempts = 0;
-        const maxAttempts = 100; // 10 seconds max wait
-        
-        while (!this.isInitialized && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
+        // Since we now use synchronous initialization, this should be immediate
+        if (!this.isInitialized) {
+            console.warn('API Service not initialized, attempting synchronous initialization');
+            this.initializeSync();
         }
         
         if (!this.isInitialized) {
@@ -248,8 +246,11 @@ class APIService {
 
     // Generic API request method
     async request(endpoint, options = {}) {
-        // Wait for initialization
-        await this.waitForInitialization();
+        // Ensure initialization is complete
+        if (!this.isInitialized) {
+            console.warn('API Service not initialized, attempting synchronous initialization');
+            this.initializeSync();
+        }
         
         const url = `${this.baseURL}${endpoint}`;
         const config = {

@@ -634,7 +634,11 @@ async function initializeAuthState() {
         
         // Wait for API service to be available and initialized
         if (window.apiService) {
-            await window.apiService.waitForInitialization();
+            // Since API service now initializes synchronously, just check if it's ready
+            if (!window.apiService.isInitialized) {
+                console.warn('API service not initialized, skipping auth state initialization');
+                return;
+            }
             
             // Try to refresh token from storage
             window.apiService.refreshTokenFromStorage();
@@ -1083,6 +1087,12 @@ async function verifyAuthenticationStatus() {
         // Check if API service is available
         if (!window.apiService) {
             console.log('API service not available yet, waiting...');
+            return;
+        }
+        
+        // Since API service now initializes synchronously, just check if it's ready
+        if (!window.apiService.isInitialized) {
+            console.log('API service not initialized yet, skipping verification');
             return;
         }
         
