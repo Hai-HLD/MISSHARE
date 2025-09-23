@@ -880,7 +880,16 @@ async function displayNote(note) {
     if (noteTitle) noteTitle.textContent = note.title || 'Untitled';
     if (noteTopic) noteTopic.textContent = note.topic || 'General';
     if (noteClass) noteClass.textContent = note.class || 'MIS';
-    if (noteYear) noteYear.textContent = note.year || 'N/A';
+    if (noteYear) {
+        // Hide year badge initially, show after API call completes
+        noteYear.style.display = 'none';
+        // Handle multiple years by taking only the first one
+        const year = note.year || 'N/A';
+        const firstYear = year.toString().split(/[,\s]+/)[0];
+        noteYear.textContent = firstYear;
+        // Show the year badge after setting the content
+        noteYear.style.display = 'inline-block';
+    }
     if (noteAuthor) noteAuthor.textContent = note.authorName || 'Unknown';
     if (noteDate) noteDate.textContent = `Posted on ${formatDate(note.createdAt)}`;
     if (noteContent) {
@@ -1891,7 +1900,7 @@ function createNoteCard(note, showDeleteButton = false) {
         <div class="mb-2">
             <span class="badge bg-primary me-1">${escapeHtml(note.topic || 'General')}</span>
             <span class="badge bg-secondary me-1">${escapeHtml(note.class || 'MIS')}</span>
-            <span class="badge bg-info">${note.year || 'N/A'}</span>
+            <span class="badge bg-info">${(note.year || 'N/A').toString().split(/[,\s]+/)[0]}</span>
         </div>
         <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">By ${escapeHtml(note.authorName || 'Unknown')}</small>

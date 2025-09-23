@@ -32,6 +32,11 @@ body.page-ready {
     display: block;
 }
 
+/* Hide year badge initially to prevent flash */
+#noteYear {
+    display: none;
+}
+
 /* Root Variables */
 :root {
   --primary-color: #8b1538;
