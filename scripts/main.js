@@ -71,12 +71,12 @@ async function initializeWebsite() {
 // Determine current page based on URL
 function getCurrentPage() {
     const path = window.location.pathname;
-    if (path.includes('note.html')) return 'note';
-    if (path.includes('profile.html')) return 'profile';
-    if (path.includes('search.html')) return 'search';
-    if (path.includes('upload.html')) return 'upload';
-    if (path.includes('login.html')) return 'login';
-    if (path.includes('home.html')) return 'main';
+    if (path.includes('note.html') || path.includes('/note')) return 'note';
+    if (path.includes('profile.html') || path.includes('/profile')) return 'profile';
+    if (path.includes('search.html') || path.includes('/search')) return 'search';
+    if (path.includes('upload.html') || path.includes('/upload')) return 'upload';
+    if (path.includes('login.html') || path.includes('/login')) return 'login';
+    if (path.includes('home.html') || path.includes('/home')) return 'main';
     
     // For root path or any other path, return 'main' (home page)
     return 'main';
