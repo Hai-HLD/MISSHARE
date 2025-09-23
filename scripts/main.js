@@ -17,7 +17,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize all website functionality
 async function initializeWebsite() {
+    // Prevent multiple initializations
+    if (window.websiteInitialized) {
+        console.log('Website already initialized, skipping...');
+        return;
+    }
+    
     try {
+        console.log('Initializing website...');
+        window.websiteInitialized = true;
+        
         // First, verify authentication status before any page rendering
         console.log('Verifying authentication status...');
         await verifyAuthenticationStatus();
@@ -65,11 +74,16 @@ async function initializeWebsite() {
 // Determine current page based on URL
 function getCurrentPage() {
     const path = window.location.pathname;
+    console.log('getCurrentPage - path:', path);
+    
     if (path.includes('note.html')) return 'note';
     if (path.includes('profile.html')) return 'profile';
     if (path.includes('search.html')) return 'search';
     if (path.includes('upload.html')) return 'upload';
     if (path.includes('login.html')) return 'login';
+    if (path.includes('home.html')) return 'main';
+    
+    // For root path or any other path, return 'main' (home page)
     return 'main';
 }
 
@@ -606,18 +620,24 @@ async function logoutUser() {
         // Show notification
         showNotification('You have been logged out successfully.', 'info');
         
-        // Redirect to login page after a short delay
+        // Redirect to login page after a short delay (only if not already on login page)
         setTimeout(() => {
-            const isInPagesFolder = window.location.pathname.includes('Pages/');
-            window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+            const currentPath = window.location.pathname;
+            if (!currentPath.includes('login.html')) {
+                const isInPagesFolder = currentPath.includes('Pages/');
+                window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+            }
         }, 1000);
         
     } catch (error) {
         console.error('Logout error:', error);
-        // Even if logout fails, clear local data and redirect
+        // Even if logout fails, clear local data and redirect (only if not already on login page)
         saveUserData(null);
-        const isInPagesFolder = window.location.pathname.includes('Pages/');
-        window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes('login.html')) {
+            const isInPagesFolder = currentPath.includes('Pages/');
+            window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+        }
     }
 }
 
@@ -764,9 +784,12 @@ function setupAuthRedirects() {
             if (!loggedIn) {
                 e.preventDefault();
                 showNotification('Please log in to upload notes.', 'warning');
-                // Navigate to login page
-                const isInPagesFolder = window.location.pathname.includes('Pages/');
-                window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+                // Navigate to login page (only if not already on login page)
+                const currentPath = window.location.pathname;
+                if (!currentPath.includes('login.html')) {
+                    const isInPagesFolder = currentPath.includes('Pages/');
+                    window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+                }
             }
         });
     }
@@ -1341,11 +1364,22 @@ function displayUserProfile(user) {
 // Load user's notes
 async function loadUserNotes(userId) {
     try {
+        console.log('Loading user notes for userId:', userId);
+        console.log('API service available:', !!window.apiService);
+        console.log('API service token:', !!window.apiService?.token);
+        
         const notes = await apiService.getUserNotes(userId);
+        console.log('User notes loaded:', notes);
+        
         displayUserNotes(notes || []);
         updateNotesCount(notes?.length || 0);
     } catch (error) {
         console.error('Failed to load user notes:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            userId: userId
+        });
         displayUserNotes([]);
     }
 }
@@ -1496,9 +1530,12 @@ async function deleteNote(noteId) {
     const loggedIn = isLoggedIn();
     if (!loggedIn) {
         showNotification('Please log in to delete notes.', 'warning');
-        // Navigate to login page
-        const isInPagesFolder = window.location.pathname.includes('Pages/');
-        window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+        // Navigate to login page (only if not already on login page)
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes('login.html')) {
+            const isInPagesFolder = currentPath.includes('Pages/');
+            window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+        }
         return;
     }
     
@@ -1765,10 +1802,21 @@ async function handleSearchSubmit(e) {
     if (author) searchParams.author = author;
     
     try {
+        console.log('Performing search with params:', searchParams);
+        console.log('API service available:', !!window.apiService);
+        console.log('API service token:', !!window.apiService?.token);
+        
         const notes = await apiService.getNotes(searchParams);
+        console.log('Search results:', notes);
+        
         displaySearchResults(notes || []);
     } catch (error) {
         console.error('Search failed:', error);
+        console.error('Search error details:', {
+            message: error.message,
+            stack: error.stack,
+            searchParams: searchParams
+        });
         showNotification('Search failed. Please try again.', 'danger');
         displaySearchResults([]);
     }

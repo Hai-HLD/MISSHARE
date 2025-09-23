@@ -151,8 +151,10 @@ async function updateProfile(request, env) {
 
 async function getUserNotes(cwid, request, env) {
   try {
+    console.log('getUserNotes called for CWID:', cwid);
     const url = new URL(request.url);
     const searchParams = url.searchParams;
+    console.log('getUserNotes search params:', Object.fromEntries(searchParams.entries()));
 
     const page = parseInt(searchParams.get('page')) || 1;
     const pageSize = parseInt(searchParams.get('pageSize')) || 10;
@@ -186,6 +188,10 @@ async function getUserNotes(cwid, request, env) {
     const countResult = await env.DB.prepare(
       'SELECT COUNT(*) as total FROM Notes WHERE AuthorId = ?'
     ).bind(cwid).first();
+
+    console.log('getUserNotes - Raw notes result:', notes);
+    console.log('getUserNotes - Notes results:', notes.results);
+    console.log('getUserNotes - Count result:', countResult);
 
     const response = new Response(
       JSON.stringify(notes.results || []),

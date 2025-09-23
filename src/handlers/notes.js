@@ -32,8 +32,10 @@ export async function NotesHandler(request, env) {
 }
 
 async function getNotes(request, env) {
+  console.log('getNotes called with URL:', request.url);
   const url = new URL(request.url);
   const searchParams = url.searchParams;
+  console.log('Search params:', Object.fromEntries(searchParams.entries()));
 
   // Build query with filters
   let query = `
@@ -102,6 +104,10 @@ async function getNotes(request, env) {
     }
     const countParams = params.slice(0, -2); // Remove LIMIT and OFFSET params
     const countResult = await env.DB.prepare(countQuery).bind(...countParams).first();
+
+    console.log('getNotes - Raw notes result:', notes);
+    console.log('getNotes - Notes results:', notes.results);
+    console.log('getNotes - Count result:', countResult);
 
     const response = new Response(
       JSON.stringify(notes.results || []),
