@@ -533,33 +533,28 @@ function saveUserData(userData) {
 function loadUserData() {
     initializeUserStorage();
     
-    // Try sessionStorage first
+    // Try sessionStorage
     try {
         const storedUser = sessionStorage.getItem('misShareUser');
+        console.log('loadUserData - sessionStorage user:', !!storedUser);
         if (storedUser) {
             return JSON.parse(storedUser);
         }
     } catch (error) {
-        // Continue to next method
-    }
-    
-    // Try sessionStorage as fallback
-    try {
-        const storedUser = sessionStorage.getItem('misShareUser');
-        if (storedUser) {
-            return JSON.parse(storedUser);
-        }
-    } catch (error) {
+        console.warn('loadUserData - sessionStorage error:', error);
         // Continue to next method
     }
     
     // Use in-memory storage as last resort
-    return window.misShareUserStorage.user || null;
+    const memoryUser = window.misShareUserStorage.user || null;
+    console.log('loadUserData - memory user:', !!memoryUser);
+    return memoryUser;
 }
 
 // Get current user info
 async function getCurrentUser() {
     const loggedIn = isLoggedIn();
+    console.log('getCurrentUser - loggedIn:', loggedIn);
     
     if (!loggedIn) {
         return null;
@@ -1191,12 +1186,21 @@ function setupProfileFunctionality() {
 // Load user profile data
 async function loadUserProfile() {
     try {
-        // Wait for API service to be properly initialized
-        if (window.apiService) {
-            await window.apiService.waitForInitialization();
-        } else {
+        // Check if API service is available and initialized
+        if (!window.apiService) {
             throw new Error('API service not available');
         }
+        
+        if (!window.apiService.isInitialized) {
+            console.warn('API service not initialized, attempting synchronous initialization');
+            window.apiService.initializeSync();
+        }
+        
+        console.log('Profile loading - API service state:', {
+            exists: !!window.apiService,
+            initialized: window.apiService?.isInitialized,
+            hasToken: !!window.apiService?.token
+        });
         
         const user = await getCurrentUser();
         
@@ -1205,8 +1209,9 @@ async function loadUserProfile() {
         const profileOwnerCwid = urlParams.get('cwid');
         
         if (profileOwnerCwid) {
-            // Viewing someone else's profile
-            await loadProfileData(profileOwnerCwid, false); // false = not own profile
+            // Check if viewing own profile or someone else's profile
+            const isOwnProfile = user && user.cwid.toString() === profileOwnerCwid;
+            await loadProfileData(profileOwnerCwid, isOwnProfile);
         } else if (user) {
             // Viewing own profile - redirect to URL with CWID
             const currentUrl = new URL(window.location);
@@ -1248,6 +1253,9 @@ async function loadProfileData(cwid, isOwnProfile) {
         // Display the profile owner's information
         displayUserProfile(profileOwner);
         
+        // Control change password button visibility based on profile ownership
+        toggleChangePasswordButton(isOwnProfile);
+        
         // Load the profile owner's notes
         await loadUserNotes(cwid);
         
@@ -1277,6 +1285,18 @@ function hideBookmarksTab() {
 // Show/hide Edit Profile button (removed)
 function toggleEditProfileButton(isOwnProfile) {
     // Edit profile functionality has been removed
+}
+
+// Show/hide Change Password button based on profile ownership
+function toggleChangePasswordButton(isOwnProfile) {
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    if (changePasswordBtn) {
+        if (isOwnProfile) {
+            changePasswordBtn.style.display = 'block';
+        } else {
+            changePasswordBtn.style.display = 'none';
+        }
+    }
 }
 
 // Display user profile information
