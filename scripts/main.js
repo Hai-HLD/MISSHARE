@@ -900,8 +900,10 @@ async function displayNote(note) {
     
     // Update author info in sidebar
     const authorName = document.getElementById('authorName');
+    const viewProfileBtn = document.getElementById('viewProfileBtn');
     
     if (authorName) authorName.textContent = note.authorName || 'Unknown';
+    if (viewProfileBtn) viewProfileBtn.textContent = 'View Profile';
     
     // Show edit button if user owns this note
     const editButtonContainer = document.getElementById('editButtonContainer');
@@ -1153,8 +1155,6 @@ function formatDate(dateString) {
 function initializeProfilePage() {
     // Hide all profile content initially
     hideAllProfileContent();
-    // Show loading spinner
-    showProfileLoading();
     setupProfileFunctionality();
 }
 
@@ -1168,32 +1168,7 @@ function hideAllProfileContent() {
     }
 }
 
-// Show loading state for profile page
-function showProfileLoading() {
-    const container = document.querySelector('.container');
-    if (container) {
-        // Add loading spinner to the container
-        const loadingDiv = document.createElement('div');
-        loadingDiv.id = 'profileLoadingSpinner';
-        loadingDiv.className = 'text-center py-5';
-        loadingDiv.innerHTML = `
-            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <h4 class="text-muted">Loading Profile...</h4>
-            <p class="text-muted">Please wait while we load your profile information.</p>
-        `;
-        container.appendChild(loadingDiv);
-    }
-}
 
-// Hide loading state for profile page
-function hideProfileLoading() {
-    const loadingSpinner = document.getElementById('profileLoadingSpinner');
-    if (loadingSpinner) {
-        loadingSpinner.remove();
-    }
-}
 
 // Hide profile content initially (tabs only)
 function hideProfileContent() {
@@ -1206,8 +1181,17 @@ function hideProfileContent() {
 
 // Show profile content after authentication
 function showProfileContent() {
-    // Hide loading spinner first
-    hideProfileLoading();
+    // Show tabs and notes section
+    const profileTabs = document.getElementById('profileTabs');
+    const profileTabContent = document.getElementById('profileTabContent');
+    
+    if (profileTabs) {
+        profileTabs.style.display = 'flex';
+    }
+    
+    if (profileTabContent) {
+        profileTabContent.style.display = 'block';
+    }
     
     // Show profile content
     const profileContent = document.querySelector('.profile-content');
@@ -1325,12 +1309,12 @@ function toggleEditProfileButton(isOwnProfile) {
 
 // Show/hide Change Password button based on profile ownership
 function toggleChangePasswordButton(isOwnProfile) {
-    const changePasswordBtn = document.getElementById('changePasswordBtn');
-    if (changePasswordBtn) {
+    const changePasswordContainer = document.getElementById('changePasswordContainer');
+    if (changePasswordContainer) {
         if (isOwnProfile) {
-            changePasswordBtn.style.display = 'block';
+            changePasswordContainer.style.display = 'block';
         } else {
-            changePasswordBtn.style.display = 'none';
+            changePasswordContainer.style.display = 'none';
         }
     }
 }
@@ -1345,6 +1329,12 @@ function displayUserProfile(user) {
     // Remove loading spinner
     if (profileSpinner) {
         profileSpinner.remove();
+    }
+    
+    // Show the user name container
+    const userNameContainer = document.getElementById('userNameContainer');
+    if (userNameContainer) {
+        userNameContainer.style.display = 'block';
     }
     
     if (userName) {

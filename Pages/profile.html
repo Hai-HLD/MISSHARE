@@ -62,13 +62,17 @@
                         <div class="row align-items-center">
                             <div class="col-md-3 text-center">
                                 <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px;">
-                                    <span class="text-white display-4 fw-bold" id="userInitials">JD</span>
+                                    <span class="text-white display-4 fw-bold" id="userInitials">
+                                        <div class="spinner-border text-light" role="status" id="profileSpinner">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </span>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="userNameContainer" style="display: none;">
                                 <h1 class="h2 mb-2" id="userName">John Doe</h1>
                             </div>
-                            <div class="col-md-3 text-end">
+                            <div class="col-md-3 text-end" id="changePasswordContainer" style="display: none;">
                                 <button class="btn btn-outline-secondary btn-sm" id="changePasswordBtn">
                                     <i class="bi bi-key me-1"></i>Change Password
                                 </button>
@@ -80,7 +84,7 @@
         </div>
 
         <!-- Tabs -->
-        <ul class="nav nav-tabs mb-4 d-flex flex-nowrap" id="profileTabs" role="tablist" style="overflow-x: auto;">
+        <ul class="nav nav-tabs mb-4 d-flex flex-nowrap" id="profileTabs" role="tablist" style="overflow-x: auto; display: none;">
             <li class="nav-item flex-shrink-0" role="presentation">
                 <button class="nav-link active" id="my-notes-tab" data-bs-toggle="tab" data-bs-target="#my-notes" type="button" role="tab">
                     <i class="bi bi-journal-text me-2"></i>My Notes
@@ -89,7 +93,7 @@
         </ul>
 
         <!-- Tab Content -->
-        <div class="tab-content" id="profileTabContent">
+        <div class="tab-content" id="profileTabContent" style="display: none;">
             <!-- My Notes Tab -->
             <div class="tab-pane fade show active" id="my-notes" role="tabpanel">
                 <div class="row" id="myNotesGrid">
