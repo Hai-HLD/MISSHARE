@@ -36,7 +36,7 @@
                         <a class="nav-link" href="search.html">Search Notes</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="upload.html" id="uploadNavLink">Upload Note</a>
+                        <a class="nav-link" href="upload.html" id="uploadNavLink">Upload Notes</a>
                     </li>
                     <li class="nav-item" id="profileNavItem" style="display: none;">
                         <a class="nav-link" href="profile.html">My Profile</a>
@@ -107,25 +107,25 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="signupFirstName" class="form-label">First Name *</label>
-                                            <input type="text" class="form-control" id="signupFirstName" required>
+                                            <input type="text" class="form-control" id="signupFirstName" autocomplete="off" autofill="off" required>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="signupLastName" class="form-label">Last Name *</label>
-                                            <input type="text" class="form-control" id="signupLastName" required>
+                                            <input type="text" class="form-control" id="signupLastName" autocomplete="off" autofill="off" required>
                                         </div>
                                     </div>
                                     <div class="mb-3">
                                         <label for="signupEmail" class="form-label">Email Address *</label>
-                                        <input type="email" class="form-control" id="signupEmail" required>
+                                        <input type="email" class="form-control" id="signupEmail" autocomplete="off" autofill="off" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="signupCWID" class="form-label">CWID (8-digit Student ID) *</label>
-                                        <input type="text" class="form-control" id="signupCWID" maxlength="8" required>
+                                        <input type="text" class="form-control" id="signupCWID" maxlength="8" autocomplete="off" autofill="off" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="signupPassword" class="form-label">Password (min 8 characters) *</label>
                                         <div class="input-group">
-                                            <input type="password" class="form-control" id="signupPassword" required>
+                                            <input type="password" class="form-control" id="signupPassword" autocomplete="new-password" autofill="off" required>
                                             <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('signupPassword')">
                                                 <i class="bi bi-eye" id="signupPasswordToggle"></i>
                                             </button>
@@ -134,7 +134,7 @@
                                     <div class="mb-3">
                                         <label for="signupConfirmPassword" class="form-label">Confirm Password *</label>
                                         <div class="input-group">
-                                            <input type="password" class="form-control" id="signupConfirmPassword" required>
+                                            <input type="password" class="form-control" id="signupConfirmPassword" autocomplete="new-password" autofill="off" required>
                                             <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('signupConfirmPassword')">
                                                 <i class="bi bi-eye" id="signupConfirmPasswordToggle"></i>
                                             </button>

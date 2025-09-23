@@ -8,10 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Mark page as ready to show content
         document.body.classList.add('page-ready');
         
-        // Wait for the background color transition to complete (3s) before making it transparent
+        // Wait for the background color transition to complete (0.3s) before making it transparent
         setTimeout(() => {
             document.body.style.backgroundColor = 'transparent';
-        }, 3000);
+        }, 300);
     }, 50);
 });
 
@@ -464,6 +464,7 @@ function setupAuthentication() {
     checkAuthenticationStatus();
     setupAuthRedirects();
     setupLogout();
+    setupAuthTabs();
 }
 
 // Check if user is logged in
@@ -594,10 +595,30 @@ async function setUserLoggedIn(userData) {
 
 // Log user out
 async function logoutUser() {
-    await apiService.logout();
-    saveUserData(null); // Clear user data from all storage methods
-    await updateNavigation();
-    showNotification('You have been logged out successfully.', 'info');
+    try {
+        // Clear authentication data
+        await apiService.logout();
+        saveUserData(null); // Clear user data from all storage methods
+        
+        // Update navigation to reflect logged out state
+        await updateNavigation();
+        
+        // Show notification
+        showNotification('You have been logged out successfully.', 'info');
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+            const isInPagesFolder = window.location.pathname.includes('Pages/');
+            window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Logout error:', error);
+        // Even if logout fails, clear local data and redirect
+        saveUserData(null);
+        const isInPagesFolder = window.location.pathname.includes('Pages/');
+        window.location.href = isInPagesFolder ? 'login.html' : 'Pages/login.html';
+    }
 }
 
 // Initialize authentication state
@@ -710,7 +731,7 @@ async function updateNavigation() {
     if (getStartedBtn) {
         console.log('Updating getStartedBtn, userLoggedIn:', userLoggedIn);
         if (userLoggedIn) {
-            getStartedBtn.innerHTML = '<i class="bi bi-upload me-2"></i>Upload Note';
+            getStartedBtn.innerHTML = '<i class="bi bi-upload me-2"></i>Upload Notes';
             getStartedBtn.href = 'upload.html';
             console.log('Set getStartedBtn to Upload Note');
         } else {
@@ -758,12 +779,66 @@ function setupLogout() {
         logoutLink.addEventListener('click', function(e) {
             e.preventDefault();
             logoutUser();
-            // Redirect to home page after logout
-            if (window.location.pathname.includes('Pages/')) {
-                window.location.href = 'home.html';
-            }
         });
     }
+}
+
+// Setup authentication tabs
+function setupAuthTabs() {
+    // Clear signup form when signup tab is activated
+    const signupTab = document.querySelector('[data-bs-target="#signup"]');
+    if (signupTab) {
+        signupTab.addEventListener('shown.bs.tab', function() {
+            clearSignupForm();
+        });
+    }
+    
+    // Clear login form when login tab is activated (optional)
+    const loginTab = document.querySelector('[data-bs-target="#login"]');
+    if (loginTab) {
+        loginTab.addEventListener('shown.bs.tab', function() {
+            clearLoginForm();
+        });
+    }
+}
+
+// Clear signup form
+function clearSignupForm() {
+    const signupFields = [
+        'signupFirstName',
+        'signupLastName', 
+        'signupEmail',
+        'signupCWID',
+        'signupPassword',
+        'signupConfirmPassword'
+    ];
+    
+    signupFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = '';
+            field.classList.remove('is-valid', 'is-invalid');
+        }
+    });
+    
+    // Hide any error messages
+    hideFormError('signup');
+}
+
+// Clear login form
+function clearLoginForm() {
+    const loginFields = ['loginEmail', 'loginPassword'];
+    
+    loginFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = '';
+            field.classList.remove('is-valid', 'is-invalid');
+        }
+    });
+    
+    // Hide any error messages
+    hideFormError('login');
 }
 
 // ===== DATA CLEARING FUNCTIONALITY =====
@@ -815,7 +890,7 @@ async function loadNote() {
     try {
         const note = await apiService.getNote(noteId);
         if (note) {
-            displayNote(note);
+            await displayNote(note);
             await loadRelatedNotes(note);
         } else {
             showNotification('Note not found.', 'danger');
@@ -827,9 +902,10 @@ async function loadNote() {
 }
 
 // Display note information
-function displayNote(note) {
+async function displayNote(note) {
     // Store author CWID for profile navigation
     window.currentNoteAuthorCwid = note.authorId;
+    window.currentNote = note; // Store current note for editing
     
     // Update note header
     const noteTitle = document.getElementById('noteTitle');
@@ -857,7 +933,15 @@ function displayNote(note) {
     
     if (authorName) authorName.textContent = note.authorName || 'Unknown';
     
+    // Show edit button if user owns this note
+    const editButtonContainer = document.getElementById('editButtonContainer');
+    const currentUser = await getCurrentUser();
     
+    if (editButtonContainer && currentUser && currentUser.cwid === note.authorId) {
+        editButtonContainer.style.display = 'block';
+    } else if (editButtonContainer) {
+        editButtonContainer.style.display = 'none';
+    }
 }
 
 
@@ -868,6 +952,18 @@ function setupNoteInteractions() {
     const viewProfileBtn = document.getElementById('viewProfileBtn');
     if (viewProfileBtn) {
         viewProfileBtn.addEventListener('click', handleViewProfile);
+    }
+    
+    // Setup edit note button
+    const editNoteBtn = document.getElementById('editNoteBtn');
+    if (editNoteBtn) {
+        editNoteBtn.addEventListener('click', handleEditNote);
+    }
+    
+    // Setup save note button
+    const saveNoteBtn = document.getElementById('saveNoteBtn');
+    if (saveNoteBtn) {
+        saveNoteBtn.addEventListener('click', handleSaveNote);
     }
 }
 
@@ -881,6 +977,85 @@ function handleViewProfile() {
         window.location.href = isInPagesFolder ? `profile.html?cwid=${authorCwid}` : `Pages/profile.html?cwid=${authorCwid}`;
     } else {
         showNotification('Author information not available.', 'warning');
+    }
+}
+
+// Handle edit note button click
+function handleEditNote() {
+    if (!window.currentNote) {
+        showNotification('No note data available.', 'danger');
+        return;
+    }
+    
+    // Populate the edit form with current note data
+    const editTitle = document.getElementById('editNoteTitle');
+    const editContent = document.getElementById('editNoteContent');
+    
+    if (editTitle) editTitle.value = window.currentNote.title || '';
+    if (editContent) editContent.value = window.currentNote.content || '';
+    
+    // Show the modal
+    const editModal = new bootstrap.Modal(document.getElementById('editNoteModal'));
+    editModal.show();
+}
+
+// Handle save note button click
+async function handleSaveNote() {
+    if (!window.currentNote) {
+        showNotification('No note data available.', 'danger');
+        return;
+    }
+    
+    const editTitle = document.getElementById('editNoteTitle');
+    const editContent = document.getElementById('editNoteContent');
+    
+    if (!editTitle || !editContent) {
+        showNotification('Form fields not found.', 'danger');
+        return;
+    }
+    
+    const title = editTitle.value.trim();
+    const content = editContent.value.trim();
+    
+    if (!title || !content) {
+        showNotification('Title and content are required.', 'danger');
+        return;
+    }
+    
+    try {
+        // Show loading state
+        const saveBtn = document.getElementById('saveNoteBtn');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Saving...';
+        saveBtn.disabled = true;
+        
+        // Update the note
+        const updatedNote = await apiService.updateNote(window.currentNote.id, {
+            title: title,
+            content: content
+        });
+        
+        if (updatedNote) {
+            // Update the displayed note
+            window.currentNote = updatedNote;
+            displayNote(updatedNote);
+            
+            // Hide the modal
+            const editModal = bootstrap.Modal.getInstance(document.getElementById('editNoteModal'));
+            if (editModal) {
+                editModal.hide();
+            }
+            
+            showNotification('Note updated successfully!', 'success');
+        }
+    } catch (error) {
+        console.error('Failed to update note:', error);
+        showNotification('Failed to update note. Please try again.', 'danger');
+    } finally {
+        // Reset button state
+        const saveBtn = document.getElementById('saveNoteBtn');
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
     }
 }
 
@@ -1033,6 +1208,7 @@ function setupProfileFunctionality() {
     loadUserProfile();
     setupProfileTabs();
     setupEditProfileModal();
+    setupChangePasswordModal();
 }
 
 // Load user profile data
@@ -1198,54 +1374,11 @@ function displayUserNotes(notes) {
     }
     
     notes.forEach(note => {
-        const noteCard = createProfileNoteCard(note);
+        const noteCard = createNoteCard(note, true); // Show delete button for profile page
         myNotesGrid.appendChild(noteCard);
     });
 }
 
-// Create note card for profile page
-function createProfileNoteCard(note) {
-    const col = document.createElement('div');
-    col.className = 'col-md-6 col-lg-4 mb-4';
-    
-    const card = document.createElement('div');
-    card.className = 'card h-100 shadow-sm';
-    
-    const cardBody = document.createElement('div');
-    cardBody.className = 'card-body d-flex flex-column';
-    
-    cardBody.innerHTML = `
-        <h5 class="card-title">${escapeHtml(note.title || 'Untitled')}</h5>
-        <p class="card-text text-muted small flex-grow-1">${escapeHtml(note.content?.substring(0, 100) || 'No content available')}${note.content?.length > 100 ? '...' : ''}</p>
-        <div class="mb-2">
-            <span class="badge bg-primary me-1">${escapeHtml(note.topic || 'General')}</span>
-            <span class="badge bg-secondary me-1">${escapeHtml(note.class || 'MIS')}</span>
-            <span class="badge bg-info">${note.year || 'N/A'}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted">${formatDate(note.createdAt)}</small>
-        </div>
-    `;
-    
-    const cardFooter = document.createElement('div');
-    cardFooter.className = 'card-footer bg-transparent';
-    cardFooter.innerHTML = `
-        <div class="d-flex justify-content-between">
-            <a href="note.html?id=${note.id}" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-eye me-1"></i>View
-            </a>
-            <button class="btn btn-outline-danger btn-sm" onclick="deleteNote(${note.id})">
-                <i class="bi bi-trash me-1"></i>Delete
-            </button>
-        </div>
-    `;
-    
-    card.appendChild(cardBody);
-    card.appendChild(cardFooter);
-    col.appendChild(card);
-    
-    return col;
-}
 
 
 // Setup profile tabs
@@ -1262,6 +1395,100 @@ function setupEditProfileModal() {
 async function handleProfileUpdate() {
     // Edit profile functionality has been removed
     showNotification('Profile editing has been disabled.', 'info');
+}
+
+// Setup change password modal
+function setupChangePasswordModal() {
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const savePasswordBtn = document.getElementById('savePasswordBtn');
+    
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', handleChangePasswordClick);
+    }
+    
+    if (savePasswordBtn) {
+        savePasswordBtn.addEventListener('click', handleSavePassword);
+    }
+}
+
+// Handle change password button click
+function handleChangePasswordClick() {
+    // Clear the form
+    const currentPassword = document.getElementById('currentPassword');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    if (currentPassword) currentPassword.value = '';
+    if (newPassword) newPassword.value = '';
+    if (confirmPassword) confirmPassword.value = '';
+    
+    // Show the modal
+    const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+    changePasswordModal.show();
+}
+
+// Handle save password button click
+async function handleSavePassword() {
+    const currentPassword = document.getElementById('currentPassword');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showNotification('Form fields not found.', 'danger');
+        return;
+    }
+    
+    const currentPwd = currentPassword.value.trim();
+    const newPwd = newPassword.value.trim();
+    const confirmPwd = confirmPassword.value.trim();
+    
+    // Validation
+    if (!currentPwd || !newPwd || !confirmPwd) {
+        showNotification('All fields are required.', 'danger');
+        return;
+    }
+    
+    if (newPwd.length < 6) {
+        showNotification('New password must be at least 6 characters long.', 'danger');
+        return;
+    }
+    
+    if (newPwd !== confirmPwd) {
+        showNotification('New passwords do not match.', 'danger');
+        return;
+    }
+    
+    try {
+        // Show loading state
+        const saveBtn = document.getElementById('savePasswordBtn');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Changing...';
+        saveBtn.disabled = true;
+        
+        // Change password
+        await apiService.changePassword({
+            currentPassword: currentPwd,
+            newPassword: newPwd
+        });
+        
+        // Hide the modal
+        const changePasswordModal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+        if (changePasswordModal) {
+            changePasswordModal.hide();
+        }
+        
+        showNotification('Password changed successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Failed to change password:', error);
+        const errorMessage = error.message || 'Failed to change password. Please try again.';
+        showNotification(errorMessage, 'danger');
+    } finally {
+        // Reset button state
+        const saveBtn = document.getElementById('savePasswordBtn');
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
 }
 
 // Delete note
@@ -1433,7 +1660,7 @@ async function updateMainPageContent() {
     } else {
         // User is not logged in - show general content
         if (heroDescription) {
-            heroDescription.textContent = 'Share and discover study notes with fellow MIS students.';
+            heroDescription.textContent = 'Share and discover study notes with fellow MIS students at the University of Alabama.';
         }
         
         if (heroIcon) {
@@ -1584,7 +1811,7 @@ function displaySearchResults(notes) {
 }
 
 // Create note card element
-function createNoteCard(note) {
+function createNoteCard(note, showDeleteButton = false) {
     const col = document.createElement('div');
     col.className = 'col-md-6 col-lg-4 mb-4';
     
@@ -1610,13 +1837,27 @@ function createNoteCard(note) {
     
     const cardFooter = document.createElement('div');
     cardFooter.className = 'card-footer bg-transparent';
-    cardFooter.innerHTML = `
-        <div class="d-flex justify-content-between">
-            <a href="note.html?id=${note.id}" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-eye me-1"></i>View
-            </a>
-        </div>
-    `;
+    
+    if (showDeleteButton) {
+        cardFooter.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <a href="note.html?id=${note.id}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i>View
+                </a>
+                <button class="btn btn-outline-danger btn-sm" onclick="deleteNote(${note.id})">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+            </div>
+        `;
+    } else {
+        cardFooter.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <a href="note.html?id=${note.id}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i>View
+                </a>
+            </div>
+        `;
+    }
     
     card.appendChild(cardBody);
     card.appendChild(cardFooter);

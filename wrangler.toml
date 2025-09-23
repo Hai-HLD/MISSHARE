@@ -1,0 +1,23 @@
+name = "misshare-api"
+main = "src/index.js"
+compatibility_date = "2024-01-15"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "MISSHAREDB"
+database_id = "57a1c19e-491c-4d46-9a8d-95458396ed38"
+
+# Environment variables
+[vars]
+JWT_SECRET = "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"
+JWT_ISSUER = "MISSHARE"
+JWT_AUDIENCE = "MISSHARE"
+JWT_EXPIRY_HOURS = "24"
+
+# CORS configuration
+[env.production]
+name = "misshare-api-prod"
+
+[env.staging]
+name = "misshare-api-staging"

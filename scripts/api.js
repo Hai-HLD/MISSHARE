@@ -125,7 +125,8 @@ class APIService {
     }
 
     getApiBaseUrl() {
-        return 'http://localhost:5000/api';
+        // Use Cloudflare Workers URL - replace with your actual worker URL after deployment
+        return 'https://misshare-api.hlhoang.workers.dev/api';
     }
 
     async initialize() {
@@ -292,11 +293,11 @@ class APIService {
             
             // Handle network errors more specifically
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                throw new Error('Cannot connect to the server. Please make sure the API server is running on http://localhost:5000');
+                throw new Error('Cannot connect to the Cloudflare Workers API. Please check your internet connection and ensure the worker is deployed.');
             }
             
             if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                throw new Error('Network error: Cannot reach the server. Please check your connection and ensure the API server is running.');
+                throw new Error('Network error: Cannot reach the Cloudflare Workers API. Please check your connection and ensure the worker is deployed.');
             }
             
             throw error;
@@ -415,6 +416,13 @@ class APIService {
 
     async getUserNotes(cwid, page = 1, pageSize = 10) {
         return await this.request(`/users/${cwid}/notes?page=${page}&pageSize=${pageSize}`);
+    }
+
+    async changePassword(passwordData) {
+        return await this.request('/auth/change-password', {
+            method: 'PUT',
+            body: JSON.stringify(passwordData)
+        });
     }
 
 }

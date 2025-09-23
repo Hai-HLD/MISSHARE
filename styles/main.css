@@ -83,7 +83,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-  background: var(--gradient-hero);
+  background: #000000;
   min-height: 100vh;
   display: flex;
   align-items: center;

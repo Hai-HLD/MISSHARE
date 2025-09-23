@@ -36,7 +36,7 @@
                         <a class="nav-link" href="search.html">Search Notes</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="upload.html" id="uploadNavLink">Upload Note</a>
+                        <a class="nav-link" href="upload.html" id="uploadNavLink">Upload Notes</a>
                     </li>
                     <li class="nav-item" id="profileNavItem" style="display: none;">
                         <a class="nav-link" href="profile.html">My Profile</a>
@@ -68,6 +68,11 @@
                                     <span class="badge bg-secondary me-2" id="noteClass">Class</span>
                                     <span class="badge bg-info" id="noteYear">Year</span>
                                 </div>
+                            </div>
+                            <div id="editButtonContainer" style="display: none;">
+                                <button class="btn btn-outline-primary" id="editNoteBtn">
+                                    <i class="bi bi-pencil me-2"></i>Edit Note
+                                </button>
                             </div>
                         </div>
 
@@ -127,6 +132,34 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Note Modal -->
+    <div class="modal fade" id="editNoteModal" tabindex="-1" aria-labelledby="editNoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editNoteModalLabel">Edit Note</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editNoteForm">
+                        <div class="mb-3">
+                            <label for="editNoteTitle" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="editNoteTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editNoteContent" class="form-label">Content</label>
+                            <textarea class="form-control" id="editNoteContent" rows="10" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveNoteBtn">Save Changes</button>
+                </div>
             </div>
         </div>
     </div>

@@ -1,0 +1,29 @@
+{
+  "name": "misshare-api",
+  "version": "1.0.0",
+  "description": "MIS SHARE API built with Cloudflare Workers and D1",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "test": "wrangler dev --local"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "d1",
+    "api",
+    "mis-share",
+    "study-notes"
+  ],
+  "author": "MIS SHARE Team",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
