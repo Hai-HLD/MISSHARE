@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MISShareAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d106ebe09579adbe82941a65c77e3ad4aa276a3a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aa0f82a7d66ee6dc2689c6681289b3d0e174d9a4")]
 [assembly: System.Reflection.AssemblyProductAttribute("MISShareAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MISShareAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

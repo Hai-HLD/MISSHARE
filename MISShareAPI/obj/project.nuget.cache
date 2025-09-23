@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MSJbnDMzrQw=",
+  "dgSpecHash": "kabZpttQ2oY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\MISShareAPI.csproj",
+  "projectFilePath": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\misshareapi\\MISShareAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\hoang\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\hoang\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

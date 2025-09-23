@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "AaRVetMjm0eI475ct1krfan70T+AsC7aOb5DzNjO6vU=",
+  "Hash": "Hx6HN9b1x2ZX46Nt7GNzkwblPsD3Y6q7gAwPpRbTOVo=",
   "Source": "MISShareAPI",
   "BasePath": "_content/MISShareAPI",
   "Mode": "Default",
@@ -10,7 +10,7 @@
     {
       "Name": "MISShareAPI\\wwwroot",
       "Source": "MISShareAPI",
-      "ContentRoot": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\misshareapi\\wwwroot\\",
       "BasePath": "_content/MISShareAPI",
       "Pattern": "**"
     }

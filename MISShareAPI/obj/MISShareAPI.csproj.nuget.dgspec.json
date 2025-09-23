@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\MISShareAPI.csproj": {}
+    "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\misshareapi\\MISShareAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\MISShareAPI.csproj": {
+    "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\misshareapi\\MISShareAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\MISShareAPI.csproj",
+        "projectUniqueName": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\misshareapi\\MISShareAPI.csproj",
         "projectName": "MISShareAPI",
-        "projectPath": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\MISShareAPI.csproj",
+        "projectPath": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\misshareapi\\MISShareAPI.csproj",
         "packagesPath": "C:\\Users\\hoang\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\MISShareAPI\\obj\\",
+        "outputPath": "C:\\Users\\hoang\\Documents\\sauce\\repos\\MISSHARE\\misshareapi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\hoang\\AppData\\Roaming\\NuGet\\NuGet.Config"
