@@ -31,7 +31,6 @@ async function initializeWebsite() {
         // Initialize core functionality
         setupFormValidation();
         setupPasswordToggles();
-        setupYearDropdowns();
         setupAuthentication();
         
         // Initialize authentication state (async)
@@ -48,6 +47,9 @@ async function initializeWebsite() {
                 break;
             case 'search':
                 initializeSearchPage();
+                break;
+            case 'upload':
+                initializeUploadPage();
                 break;
             case 'main':
                 initializeMainPage();
@@ -430,9 +432,12 @@ function togglePassword(fieldId) {
 
 // Setup year dropdowns
 function setupYearDropdowns() {
+    console.log('setupYearDropdowns called');
     const yearSelects = document.querySelectorAll('#noteYear, #searchYear');
+    console.log('Found year selects:', yearSelects.length);
     yearSelects.forEach(yearSelect => {
         if (yearSelect) {
+            console.log('Populating year dropdown:', yearSelect.id);
             generateYearOptions(yearSelect);
         }
     });
@@ -440,9 +445,18 @@ function setupYearDropdowns() {
 
 // Generate year options
 function generateYearOptions(yearSelect) {
-    if (!yearSelect) return;
+    if (!yearSelect) {
+        console.log('generateYearOptions: yearSelect is null');
+        return;
+    }
     
     const currentYear = new Date().getFullYear();
+    console.log('generateYearOptions: generating years from', currentYear, 'to 2018');
+    
+    // Clear existing options except the first one (placeholder)
+    while (yearSelect.children.length > 1) {
+        yearSelect.removeChild(yearSelect.lastChild);
+    }
     
     for (let year = currentYear; year >= 2018; year--) {
         const option = document.createElement('option');
@@ -450,6 +464,8 @@ function generateYearOptions(yearSelect) {
         option.textContent = year;
         yearSelect.appendChild(option);
     }
+    
+    console.log('generateYearOptions: added', (currentYear - 2018 + 1), 'year options');
 }
 
 
@@ -1563,19 +1579,41 @@ function updateNotesCount(count) {
 // Initialize search page functionality
 function initializeSearchPage() {
     setupSearchFunctionality();
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+        setupYearDropdowns(); // This populates the year dropdown
+    }, 100);
 }
 
 // Initialize upload page functionality
 function initializeUploadPage() {
+    console.log('initializeUploadPage called');
     setupUploadPageContent();
+    // Only setup year dropdowns if user is logged in (form is present)
+    if (isLoggedIn()) {
+        console.log('User is logged in, setting up year dropdowns');
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            setupYearDropdowns(); // This populates the year dropdown
+        }, 100);
+    } else {
+        console.log('User is not logged in, skipping year dropdown setup');
+    }
 }
 
 // Setup upload page content based on login status
 function setupUploadPageContent() {
+    console.log('setupUploadPageContent called');
     const uploadForm = document.getElementById('uploadForm');
     const uploadContainer = document.querySelector('.container');
+    const loggedIn = isLoggedIn();
     
-    if (!isLoggedIn()) {
+    console.log('User logged in:', loggedIn);
+    console.log('Upload form found:', !!uploadForm);
+    console.log('Upload container found:', !!uploadContainer);
+    
+    if (!loggedIn) {
+        console.log('User not logged in, showing login prompt');
         // Show login prompt instead of form
         if (uploadContainer) {
             uploadContainer.innerHTML = `
@@ -1595,6 +1633,8 @@ function setupUploadPageContent() {
                 </div>
             `;
         }
+    } else {
+        console.log('User is logged in, keeping upload form');
     }
 }
 

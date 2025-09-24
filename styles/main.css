@@ -32,8 +32,8 @@ body.page-ready {
     display: block;
 }
 
-/* Hide year badge initially to prevent flash */
-#noteYear {
+/* Hide year badge initially to prevent flash - only on note viewing page */
+.note-content #noteYear {
     display: none;
 }
 
