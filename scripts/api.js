@@ -285,11 +285,66 @@ class APIService {
         }
     }
 
+    // Unauthenticated API request method (for login, register, reset password)
+    async unauthenticatedRequest(endpoint, options = {}) {
+        const url = `${this.baseURL}${endpoint}`;
+        const config = {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            ...options
+        };
+
+        try {
+            const response = await fetch(url, config);
+            
+            if (!response.ok) {
+                // Try to get error message from response
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (jsonError) {
+                    // Try to get text response
+                    try {
+                        const errorText = await response.text();
+                        errorMessage = errorText || errorMessage;
+                    } catch (textError) {
+                        // Use default error message
+                    }
+                }
+                
+                throw new Error(errorMessage);
+            }
+
+            // Handle empty responses
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+                return data;
+            }
+            
+            return null;
+        } catch (error) {
+            
+            // Handle network errors more specifically
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                throw new Error('Cannot connect to the Cloudflare Workers API. Please check your internet connection and ensure the worker is deployed.');
+            }
+            
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                throw new Error('Network error: Cannot reach the Cloudflare Workers API. Please check your connection and ensure the worker is deployed.');
+            }
+            
+            throw error;
+        }
+    }
+
     // Authentication endpoints
     async login(email, password) {
         console.log('Logging in with email:', email);
         
-        const response = await this.request('/auth/login', {
+        const response = await this.unauthenticatedRequest('/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password })
         });
@@ -304,7 +359,7 @@ class APIService {
     async register(userData) {
         console.log('Registering user with data:', userData);
         
-        const response = await this.request('/auth/register', {
+        const response = await this.unauthenticatedRequest('/auth/register', {
             method: 'POST',
             body: JSON.stringify(userData)
         });
@@ -384,6 +439,13 @@ class APIService {
         return await this.request('/auth/change-password', {
             method: 'PUT',
             body: JSON.stringify(passwordData)
+        });
+    }
+
+    async resetPassword(resetData) {
+        return await this.unauthenticatedRequest('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify(resetData)
         });
     }
 

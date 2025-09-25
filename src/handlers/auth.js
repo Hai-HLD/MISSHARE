@@ -15,6 +15,8 @@ export async function AuthHandler(request, env) {
       return await getCurrentUser(request, env);
     } else if (path === '/api/auth/change-password' && method === 'PUT') {
       return await changePassword(request, env);
+    } else if (path === '/api/auth/reset-password' && method === 'POST') {
+      return await resetPassword(request, env);
     } else {
       return new Response('Not Found', { status: 404 });
     }
@@ -296,6 +298,78 @@ async function changePassword(request, env) {
     console.error('Change password error:', error);
     return new Response(
       JSON.stringify({ error: 'Failed to change password', message: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+async function resetPassword(request, env) {
+  try {
+    const body = await request.json();
+    const { email, cwid, newPassword } = body;
+
+    // Validate input
+    if (!email || !cwid || !newPassword) {
+      return new Response(
+        JSON.stringify({ error: 'Email, CWID, and new password are required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (cwid.length !== 8 || !/^\d{8}$/.test(cwid)) {
+      return new Response(
+        JSON.stringify({ error: 'CWID must be exactly 8 digits' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (newPassword.length < 8) {
+      return new Response(
+        JSON.stringify({ error: 'New password must be at least 8 characters long' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Find user by email and CWID
+    const user = await env.DB.prepare(
+      'SELECT * FROM Users WHERE Email = ? AND CWID = ?'
+    ).bind(email, cwid).first();
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'No user found with the provided email and CWID' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Hash new password
+    const passwordHash = await hashPassword(newPassword);
+
+    // Update password in database
+    const result = await env.DB.prepare(
+      'UPDATE Users SET PasswordHash = ? WHERE CWID = ?'
+    ).bind(passwordHash, cwid).run();
+
+    if (result.success) {
+      return new Response(
+        JSON.stringify({ 
+          message: 'Password reset successfully',
+          user: {
+            cwid: user.CWID,
+            firstName: user.FirstName,
+            lastName: user.LastName,
+            email: user.Email
+          }
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    } else {
+      throw new Error('Failed to update password');
+    }
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to reset password', message: error.message }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

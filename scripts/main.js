@@ -130,16 +130,35 @@ function setupFormValidation() {
         setupFormErrorHandling('noteTitle', 'noteClass', 'noteTopic', 'noteYear', 'noteContent');
     }
 
+    // Reset password modal button
+    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+    if (resetPasswordBtn) {
+        resetPasswordBtn.addEventListener('click', handleResetSubmit);
+        setupFormErrorHandling('resetEmail', 'resetCWID', 'resetNewPassword', 'resetConfirmPassword');
+    }
+
     // CWID validation
     const cwidField = document.getElementById('signupCWID');
     if (cwidField) {
         cwidField.addEventListener('input', validateCWID);
     }
 
+    // Reset CWID validation
+    const resetCwidField = document.getElementById('resetCWID');
+    if (resetCwidField) {
+        resetCwidField.addEventListener('input', validateResetCWID);
+    }
+
     // Password confirmation validation
     const confirmPasswordField = document.getElementById('signupConfirmPassword');
     if (confirmPasswordField) {
         confirmPasswordField.addEventListener('input', validatePasswordMatch);
+    }
+
+    // Reset password confirmation validation
+    const resetConfirmPasswordField = document.getElementById('resetConfirmPassword');
+    if (resetConfirmPasswordField) {
+        resetConfirmPasswordField.addEventListener('input', validateResetPasswordMatch);
     }
 }
 
@@ -168,11 +187,53 @@ function validateCWID(e) {
     }
 }
 
+// Reset CWID validation
+function validateResetCWID(e) {
+    const cwid = e.target.value;
+    const cwidField = e.target;
+    
+    // Remove any non-numeric characters
+    e.target.value = cwid.replace(/[^0-9]/g, '');
+    
+    // Limit to 8 digits
+    if (e.target.value.length > 8) {
+        e.target.value = e.target.value.substring(0, 8);
+    }
+    
+    // Validate format
+    if (e.target.value.length === 8) {
+        cwidField.classList.remove('is-invalid');
+        cwidField.classList.add('is-valid');
+    } else if (e.target.value.length > 0) {
+        cwidField.classList.remove('is-valid');
+        cwidField.classList.add('is-invalid');
+    } else {
+        cwidField.classList.remove('is-valid', 'is-invalid');
+    }
+}
+
 // Password match validation
 function validatePasswordMatch() {
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
     const confirmField = document.getElementById('signupConfirmPassword');
+    
+    if (confirmPassword && password !== confirmPassword) {
+        confirmField.classList.add('is-invalid');
+        confirmField.classList.remove('is-valid');
+    } else if (confirmPassword && password === confirmPassword) {
+        confirmField.classList.add('is-valid');
+        confirmField.classList.remove('is-invalid');
+    } else {
+        confirmField.classList.remove('is-valid', 'is-invalid');
+    }
+}
+
+// Reset password match validation
+function validateResetPasswordMatch() {
+    const password = document.getElementById('resetNewPassword').value;
+    const confirmPassword = document.getElementById('resetConfirmPassword').value;
+    const confirmField = document.getElementById('resetConfirmPassword');
     
     if (confirmPassword && password !== confirmPassword) {
         confirmField.classList.add('is-invalid');
@@ -251,6 +312,9 @@ async function handleLoginSubmit(e) {
             clearFormFields('loginEmail', 'loginPassword');
             clearValidationClasses('loginEmail', 'loginPassword');
             
+            // Hide forgot password link on successful login
+            hideForgotPasswordLink();
+            
             // Determine correct path based on current location
             const isInPagesFolder = window.location.pathname.includes('Pages/');
             window.location.href = isInPagesFolder ? `profile.html?cwid=${response.user.cwid}` : `Pages/profile.html?cwid=${response.user.cwid}`;
@@ -258,6 +322,9 @@ async function handleLoginSubmit(e) {
     } catch (error) {
         console.error('Login failed:', error);
         showFormError('login', error.message || 'Login failed. Please try again.');
+        
+        // Show forgot password link after failed login
+        showForgotPasswordLink();
     }
 }
 
@@ -378,6 +445,67 @@ async function handleUploadSubmit(e) {
     } catch (error) {
         console.error('Upload failed:', error);
         showFormError('upload', error.message || 'Upload failed. Please try again.');
+    }
+}
+
+// Handle reset password form submission
+async function handleResetSubmit(e) {
+    e.preventDefault();
+    hideFormError('reset');
+    
+    const email = document.getElementById('resetEmail').value;
+    const cwid = document.getElementById('resetCWID').value;
+    const newPassword = document.getElementById('resetNewPassword').value;
+    const confirmPassword = document.getElementById('resetConfirmPassword').value;
+    
+    // Validation
+    if (!email || !cwid || !newPassword || !confirmPassword) {
+        showFormError('reset', 'Please fill in all required fields.');
+        return;
+    }
+    
+    if (cwid.length !== 8) {
+        showFormError('reset', 'CWID must be exactly 8 digits.');
+        return;
+    }
+    
+    if (newPassword.length < 8) {
+        showFormError('reset', 'New password must be at least 8 characters long.');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        showFormError('reset', 'Passwords do not match.');
+        return;
+    }
+    
+    try {
+        showNotification('Resetting password...', 'info');
+        
+        const resetData = {
+            email: email,
+            cwid: cwid,
+            newPassword: newPassword
+        };
+        
+        const response = await apiService.resetPassword(resetData);
+        
+        if (response && response.message) {
+            showNotification('Password reset successfully! You can now log in with your new password.', 'success');
+            
+            // Clear form
+            clearFormFields('resetEmail', 'resetCWID', 'resetNewPassword', 'resetConfirmPassword');
+            clearValidationClasses('resetEmail', 'resetCWID', 'resetNewPassword', 'resetConfirmPassword');
+            
+            // Close overlay
+            const resetOverlay = document.getElementById('resetPasswordOverlay');
+            if (resetOverlay) {
+                resetOverlay.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('Reset password failed:', error);
+        showFormError('reset', error.message || 'Password reset failed. Please try again.');
     }
 }
 
@@ -777,6 +905,63 @@ function setupAuthTabs() {
             clearLoginForm();
         });
     }
+    
+    // Clear reset form when overlay is shown
+    const resetOverlay = document.getElementById('resetPasswordOverlay');
+    if (resetOverlay) {
+        // Clear form when overlay is displayed
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    const target = mutation.target;
+                    if (target.style.display === 'flex') {
+                        clearResetForm();
+                    }
+                }
+            });
+        });
+        observer.observe(resetOverlay, { attributes: true });
+    }
+    
+    // Setup forgot password link click handler
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    if (forgotPasswordBtn) {
+        forgotPasswordBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            switchToResetPasswordTab();
+        });
+    }
+    
+    // Setup close overlay handlers
+    const closeResetOverlay = document.getElementById('closeResetOverlay');
+    const cancelResetBtn = document.getElementById('cancelResetBtn');
+    
+    if (closeResetOverlay) {
+        closeResetOverlay.addEventListener('click', function() {
+            const resetOverlay = document.getElementById('resetPasswordOverlay');
+            if (resetOverlay) {
+                resetOverlay.style.display = 'none';
+            }
+        });
+    }
+    
+    if (cancelResetBtn) {
+        cancelResetBtn.addEventListener('click', function() {
+            const resetOverlay = document.getElementById('resetPasswordOverlay');
+            if (resetOverlay) {
+                resetOverlay.style.display = 'none';
+            }
+        });
+    }
+    
+    // Close overlay when clicking outside the content
+    if (resetOverlay) {
+        resetOverlay.addEventListener('click', function(e) {
+            if (e.target === resetOverlay) {
+                resetOverlay.style.display = 'none';
+            }
+        });
+    }
 }
 
 // Clear signup form
@@ -814,8 +999,54 @@ function clearLoginForm() {
         }
     });
     
-    // Hide any error messages
+    // Hide any error messages and forgot password link
     hideFormError('login');
+    hideForgotPasswordLink();
+}
+
+// Clear reset form
+function clearResetForm() {
+    const resetFields = [
+        'resetEmail',
+        'resetCWID',
+        'resetNewPassword',
+        'resetConfirmPassword'
+    ];
+    
+    resetFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = '';
+            field.classList.remove('is-valid', 'is-invalid');
+        }
+    });
+    
+    // Hide any error messages
+    hideFormError('reset');
+}
+
+// Show forgot password link
+function showForgotPasswordLink() {
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.style.display = 'block';
+    }
+}
+
+// Hide forgot password link
+function hideForgotPasswordLink() {
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.style.display = 'none';
+    }
+}
+
+// Switch to reset password overlay
+function switchToResetPasswordTab() {
+    const resetOverlay = document.getElementById('resetPasswordOverlay');
+    if (resetOverlay) {
+        resetOverlay.style.display = 'flex';
+    }
 }
 
 // ===== DATA CLEARING FUNCTIONALITY =====

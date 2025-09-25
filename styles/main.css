@@ -387,11 +387,113 @@ body {
   border-radius: 15px;
 }
 
+/* Reset Password Overlay */
+.reset-password-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.reset-password-content {
+  background: white;
+  border-radius: 15px;
+  box-shadow: var(--shadow-lg);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.reset-password-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 1rem;
+}
+
+.reset-password-title {
+  margin: 0;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.reset-password-header .btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.reset-password-header .btn-close:hover {
+  background-color: #f8f9fa;
+  color: var(--danger-color);
+}
+
+.reset-password-body {
+  padding: 0 1.5rem;
+}
+
+.reset-password-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+  margin-top: 1rem;
+}
+
+/* Responsive adjustments for overlay */
+@media (max-width: 576px) {
+  .reset-password-overlay {
+    padding: 10px;
+  }
+  
+  .reset-password-content {
+    max-height: 95vh;
+  }
+  
+  .reset-password-header,
+  .reset-password-body,
+  .reset-password-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .reset-password-footer {
+    flex-direction: column;
+  }
+  
+  .reset-password-footer .btn {
+    width: 100%;
+  }
+}
+
 /* Print Styles */
 @media print {
   .navbar,
   .scroll-to-top,
-  .btn {
+  .btn,
+  .reset-password-overlay {
     display: none !important;
   }
   

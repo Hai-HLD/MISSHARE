@@ -94,6 +94,11 @@
                                                 <i class="bi bi-eye" id="loginPasswordToggle"></i>
                                             </button>
                                         </div>
+                                        <div class="forgot-password-link" id="forgotPasswordLink" style="display: none;">
+                                            <a href="#" class="text-decoration-none small" id="forgotPasswordBtn">
+                                                <i class="bi bi-question-circle me-1"></i>Forgot your password?
+                                            </a>
+                                        </div>
                                     </div>
                                     <div class="d-grid">
                                         <button type="submit" class="btn btn-primary">Login</button>
@@ -145,9 +150,58 @@
                                     </div>
                                 </form>
                             </div>
+
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Overlay -->
+    <div class="reset-password-overlay" id="resetPasswordOverlay" style="display: none;">
+        <div class="reset-password-content">
+            <div class="reset-password-header">
+                <h5 class="reset-password-title">Reset Password</h5>
+                <button type="button" class="btn-close" id="closeResetOverlay" aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="reset-password-body">
+                <form id="resetForm">
+                    <div class="mb-3">
+                        <label for="resetEmail" class="form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="resetEmail" autocomplete="off" autofill="off" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resetCWID" class="form-label">CWID (8-digit Student ID) *</label>
+                        <input type="text" class="form-control" id="resetCWID" maxlength="8" autocomplete="off" autofill="off" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resetNewPassword" class="form-label">New Password (min 8 characters) *</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="resetNewPassword" autocomplete="new-password" autofill="off" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('resetNewPassword')">
+                                <i class="bi bi-eye" id="resetNewPasswordToggle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resetConfirmPassword" class="form-label">Confirm New Password *</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="resetConfirmPassword" autocomplete="new-password" autofill="off" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('resetConfirmPassword')">
+                                <i class="bi bi-eye" id="resetConfirmPasswordToggle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="reset-password-footer">
+                <button type="button" class="btn btn-secondary" id="cancelResetBtn">Cancel</button>
+                <button type="button" class="btn btn-warning" id="resetPasswordBtn">
+                    <i class="bi bi-key me-2"></i>Reset Password
+                </button>
             </div>
         </div>
     </div>
