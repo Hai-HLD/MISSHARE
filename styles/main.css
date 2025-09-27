@@ -72,7 +72,7 @@ body {
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   background-color: rgba(139, 21, 56, 0.95) !important;
-  z-index: 9999;
+  z-index: 1030;
 }
 
 .navbar-brand {
@@ -486,6 +486,15 @@ body {
   .reset-password-footer .btn {
     width: 100%;
   }
+}
+
+/* Modal Styles */
+.modal {
+  z-index: 1055 !important;
+}
+
+.modal-backdrop {
+  z-index: 1050 !important;
 }
 
 /* Print Styles */
